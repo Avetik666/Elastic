@@ -5,13 +5,14 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
 import java.io.IOException;
 import java.net.InetAddress;
+
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 /**
- * Created by armanmac on 2/16/17.
+ * @author arman.piloyan@picsart.com
  */
 public class ElasticSearch {
     public static void main(String[] args) throws IOException {
