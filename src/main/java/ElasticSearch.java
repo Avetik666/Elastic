@@ -4,13 +4,15 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.net.InetAddress;
 
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import static org.elasticsearch.index.query.QueryBuilders.*;
+
 /**
  * @author arman.piloyan@picsart.com
  */
@@ -27,10 +29,16 @@ public class ElasticSearch {
                 .setFetchSource(true)
                 .setQuery(qb)
                 .get();
-        System.out.println(response);
-        for(SearchHit hit : response.getHits()) {
-            System.out.println(hit.getSource());
+        System.out.println(response.getHits().totalHits());
+        for( SearchHit hit : response.getHits()) {
+            System.out.println(hit.getSource().get("platform"));
         }
+        QueryBuilder qb1;
+        qb1 = boolQuery()
+                .must(new QueryStringQueryBuilder("*").analyzeWildcard(true))
+                .must(rangeQuery("@timestamp").gte(26/02/2017).lte(28/02/2017).format("dd/mm/yyyy"))
+                .mustNot( null );
+        System.out.println(qb1);
         client.close();
     }
 }
