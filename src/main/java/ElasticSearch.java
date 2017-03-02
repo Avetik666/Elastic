@@ -70,7 +70,7 @@ public class ElasticSearch {
         Cardinality agg = response2.getAggregations().get("agg");
         System.out.println(agg.getValue());
 
-
+//
 
 
 
