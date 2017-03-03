@@ -17,6 +17,11 @@ import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
@@ -25,7 +30,47 @@ import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
  * Created by armanmac on 2/16/17.
  */
 public class ElasticSearch {
+    public static long[] time(String from, String to) {
+        long date[] = new long[2];
+        SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy HH:mm:ss.SSS ");
+        df.setTimeZone(TimeZone.getTimeZone("GMT+4"));
+        Date dateto = null;
+        Date fromtime = null;
+        try {
+            fromtime = df.parse(from);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        Calendar calobj = Calendar.getInstance();
+
+        if (to == null) {
+            try {
+                String current = df.format(calobj.getTime());
+                dateto = df.parse(current);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                dateto = df.parse(to);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        long epochto = dateto.getTime();
+        long epochfrom = fromtime.getTime();
+        date[0] = epochto;
+        date[1] = epochfrom;
+        return date;
+    }
+
     public static void main(String[] args) throws IOException {
+        long[] time = time("Mar 03 2017 14:53:00.000 ", null);
+        System.out.println(time[0] -  time[1]);
+
         Settings settings = Settings.builder()
                 .put("cluster.name", "PicsArtCluster")
                 .put("node.name", "ny-log1").build();
@@ -39,7 +84,7 @@ public class ElasticSearch {
         QueryBuilder test_query = QueryBuilders
                 .boolQuery()
                 .must(QueryBuilders.queryStringQuery("*").analyzeWildcard(true))
-                .must(rangeQuery("@timestamp").gte("1488449959307" ).lte("1488450859307").format("epoch_millis"));
+                .must(rangeQuery("@timestamp").gte(Long.toString(time[1])).lte(Long.toString(time[0])).format("epoch_millis"));
 
         SearchSourceBuilder searchSourceBuilder1 = new SearchSourceBuilder();
         searchSourceBuilder1.query(test_query);
@@ -53,8 +98,6 @@ public class ElasticSearch {
                 .get();
 
         System.out.println(response1.getHits().totalHits());
-
-
 
 
         //sending search query for unique device ID Crash count
@@ -74,7 +117,7 @@ public class ElasticSearch {
 
 
         //by os version
-        QueryBuilder query1= rangeQuery("@timestamp")
+        QueryBuilder query1 = rangeQuery("@timestamp")
                 .from("1488286689614")
                 .to("1488287589614")
                 .includeLower(true)
@@ -132,21 +175,7 @@ public class ElasticSearch {
         System.out.print(searchResponse.toString());
 
 
-
-
         client.close();
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     }
