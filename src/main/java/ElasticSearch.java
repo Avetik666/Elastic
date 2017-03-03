@@ -100,6 +100,22 @@ public class ElasticSearch {
         System.out.print("\n" + response3.toString());
 
 
+        //by language
+        QueryBuilder qry1 = rangeQuery("@timestamp")
+                .gte("1488544479895")
+                .lte("1488545379895")
+                .format("epoch_millis");
+
+        SearchResponse resp1 = client.prepareSearch("crashlytics-2017.03")
+                .setQuery(qry1)
+                .addAggregation(
+                        AggregationBuilders.terms("by_language").field("language_code").size(50)
+                )
+                .execute().actionGet();
+
+        System.out.print("\n" + resp1.toString());
+
+
         //by manufacturer-model
         QueryBuilder query2 = rangeQuery("@timestamp")
                 .from("1488375445536")
