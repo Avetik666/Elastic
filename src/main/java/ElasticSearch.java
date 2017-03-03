@@ -8,10 +8,12 @@ import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.cardinality.CardinalityAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -109,7 +111,25 @@ public class ElasticSearch {
                 .execute().actionGet();
         System.out.print(response4.toString());
 
-//
+
+        //Crash Trend
+        QueryBuilder queryBuilder = rangeQuery("@timestamp")
+                .gte("1488450868673")
+                .lte("1488451768673")
+                .format("epoch_millis");
+
+        SearchResponse searchResponse = client.prepareSearch("crashlytics-2017.03")
+                .setQuery(queryBuilder)
+                .addAggregation(
+                        AggregationBuilders.dateHistogram("date_hist").field("@timestamp").dateHistogramInterval(DateHistogramInterval.seconds(30)).timeZone(DateTimeZone.forID("Europe/Moscow")).minDocCount(1)
+                                .subAggregation(
+                                        AggregationBuilders.terms("crash").field("crash_case").size(15)
+                                )
+                )
+                .execute().actionGet();
+
+
+        System.out.print(searchResponse.toString());
 
 
 

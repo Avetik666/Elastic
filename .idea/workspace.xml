@@ -22,8 +22,8 @@
       <file leaf-file-name="ElasticSearch.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/ElasticSearch.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="124">
-              <caret line="91" column="31" lean-forward="false" selection-start-line="91" selection-start-column="31" selection-end-line="91" selection-end-column="31" />
+            <state relative-caret-position="334">
+              <caret line="123" column="164" lean-forward="false" selection-start-line="123" selection-start-column="164" selection-end-line="123" selection-end-column="164" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -723,7 +723,7 @@
       <updated>1488454510476</updated>
       <workItem from="1488454512449" duration="1829000" />
       <workItem from="1488460267479" duration="711000" />
-      <workItem from="1488536184912" duration="295000" />
+      <workItem from="1488536184912" duration="370000" />
     </task>
     <task id="LOCAL-00001" summary="proper working queries for Crash count and Crash count for unique device id-s">
       <created>1488460882781</created>
@@ -739,11 +739,18 @@
       <option name="project" value="LOCAL" />
       <updated>1488536411960</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="add by manufacturer-model">
+      <created>1488536526817</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1488536526817</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2835000" />
+    <option name="totallyTimeSpent" value="2910000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="234" y="75" width="1280" height="717" extended-state="0" />
@@ -789,7 +796,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="proper working queries for Crash count and Crash count for unique device id-s" />
     <MESSAGE value="add by os version" />
-    <option name="LAST_COMMIT_MESSAGE" value="add by os version" />
+    <MESSAGE value="add by manufacturer-model" />
+    <option name="LAST_COMMIT_MESSAGE" value="add by manufacturer-model" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
@@ -848,8 +856,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/ElasticSearch.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="124">
-          <caret line="91" column="31" lean-forward="false" selection-start-line="91" selection-start-column="31" selection-end-line="91" selection-end-column="31" />
+        <state relative-caret-position="334">
+          <caret line="123" column="164" lean-forward="false" selection-start-line="123" selection-start-column="164" selection-end-line="123" selection-end-column="164" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
