@@ -68,8 +68,7 @@ public class ElasticSearch {
     }
 
     public static void main(String[] args) throws IOException {
-        long[] time = time("Mar 03 2017 14:53:00.000 ", null);
-        System.out.println(time[0] -  time[1]);
+        long[] time = time("Mar 03 2017 15:14:00.000 ", null);
 
         Settings settings = Settings.builder()
                 .put("cluster.name", "PicsArtCluster")
@@ -80,40 +79,7 @@ public class ElasticSearch {
         QueryBuilder qb = matchAllQuery();
 
 
-        //query: Crash count
-        QueryBuilder test_query = QueryBuilders
-                .boolQuery()
-                .must(QueryBuilders.queryStringQuery("*").analyzeWildcard(true))
-                .must(rangeQuery("@timestamp").gte(Long.toString(time[1])).lte(Long.toString(time[0])).format("epoch_millis"));
-
-        SearchSourceBuilder searchSourceBuilder1 = new SearchSourceBuilder();
-        searchSourceBuilder1.query(test_query);
-        searchSourceBuilder1.size(0);
-
-
-        //sending search query for Crash count
-        SearchResponse response1 = client.prepareSearch("crashlytics-2017.03")
-                .setFetchSource(true)
-                .setQuery(searchSourceBuilder1.query())
-                .get();
-
-        System.out.println(response1.getHits().totalHits());
-
-
-        //sending search query for unique device ID Crash count
-        CardinalityAggregationBuilder aggregation = AggregationBuilders
-                .cardinality("agg")
-                .field("device_id");
-
-
-        SearchResponse response2 = client.prepareSearch("crashlytics-2017.03")
-                .setFetchSource(true)
-                .setQuery(searchSourceBuilder1.query())
-                .addAggregation(aggregation)
-                .get();
-
-        Cardinality agg = response2.getAggregations().get("agg");
-        System.out.println(agg.getValue());
+       /* Hrach's methods */
 
 
         //by os version
@@ -131,7 +97,7 @@ public class ElasticSearch {
                 )
                 .execute().actionGet();
 
-        System.out.print(response3.toString());
+        System.out.print("\n" + response3.toString());
 
 
         //by manufacturer-model
@@ -152,7 +118,7 @@ public class ElasticSearch {
                 )
 
                 .execute().actionGet();
-        System.out.print(response4.toString());
+        System.out.print("\n" + response4.toString());
 
 
         //Crash Trend
@@ -172,7 +138,86 @@ public class ElasticSearch {
                 .execute().actionGet();
 
 
-        System.out.print(searchResponse.toString());
+        System.out.print("\n" + searchResponse.toString());
+
+
+        //end of Hrach's queries
+
+
+
+        //Arman's queries
+
+        //query: Crash count
+        QueryBuilder test_query = QueryBuilders
+                .boolQuery()
+                .must(QueryBuilders.queryStringQuery("*").analyzeWildcard(true))
+                .must(rangeQuery("@timestamp").gte(Long.toString(time[1])).lte(Long.toString(time[0])).format("epoch_millis"));
+
+        SearchSourceBuilder searchSourceBuilder1 = new SearchSourceBuilder();
+        searchSourceBuilder1.query(test_query);
+        searchSourceBuilder1.size(0);
+
+
+        //sending search query for Crash count
+        SearchResponse response1 = client.prepareSearch("crashlytics-2017.03")
+                .setFetchSource(true)
+                .setQuery(searchSourceBuilder1.query())
+                .get();
+
+        System.out.println("\n"+"Crash Count" + ":" + " " + response1.getHits().totalHits());
+
+
+        //sending search query for unique device ID Crash count
+        CardinalityAggregationBuilder aggregation = AggregationBuilders
+                .cardinality("agg")
+                .field("device_id");
+
+
+        SearchResponse response_2 = client.prepareSearch("crashlytics-2017.03")
+                .setFetchSource(true)
+                .setQuery(searchSourceBuilder1.query())
+                .addAggregation(aggregation)
+                .get();
+
+        Cardinality agg = response_2.getAggregations().get("agg");
+        System.out.println("Devices affected, Unique count of device_id " + ":" + " " + agg.getValue());
+
+        //sending search query for unique count for phone model
+
+        CardinalityAggregationBuilder aggregation_1 = AggregationBuilders
+                .cardinality("agg")
+                .field("phone_model");
+
+        SearchResponse response_3 = client.prepareSearch("crashlytics-2017.03")
+                .setFetchSource(true)
+                .setQuery(searchSourceBuilder1.query())
+                .addAggregation(aggregation_1)
+                .get();
+
+        Cardinality agg1 = response_3.getAggregations().get("agg");
+        System.out.println("Phone models affected, Unique count of phone_model" + ":" + " " + agg1.getValue());
+
+
+        //sending search query for unique count for user id
+
+        CardinalityAggregationBuilder aggregation_2 = AggregationBuilders
+                .cardinality("agg")
+                .field("user_id");
+
+        SearchResponse response_4 = client.prepareSearch("crashlytics-2017.03")
+                .setFetchSource(true)
+                .setQuery(searchSourceBuilder1.query())
+                .addAggregation(aggregation_2)
+                .get();
+
+        Cardinality agg2 = response_4.getAggregations().get("agg");
+        System.out.println("Logged in users affected, Unique count of user_id" + ":" + " " + agg2.getValue());
+
+
+        //end of Arman's methods
+
+
+
 
 
         client.close();
