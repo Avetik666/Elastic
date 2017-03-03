@@ -70,6 +70,24 @@ public class ElasticSearch {
         Cardinality agg = response2.getAggregations().get("agg");
         System.out.println(agg.getValue());
 
+
+        //by os version
+        QueryBuilder query1= rangeQuery("@timestamp")
+                .from("1488286689614")  //specific numbers, to compare the results with the one in logging.picsart.tools
+                .to("1488287589614")
+                .includeLower(true)
+                .includeUpper(true)
+                .format("epoch_millis");
+
+        SearchResponse response3 = client.prepareSearch("crashlytics-2017.02")
+                .setQuery(qb)
+                .addAggregation(
+                        AggregationBuilders.terms("by_os_version").field("os_version").size(5)
+                )
+                .execute().actionGet();
+
+        System.out.print(response3.toString());
+
 //
 
 
