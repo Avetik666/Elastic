@@ -73,20 +73,41 @@ public class ElasticSearch {
 
         //by os version
         QueryBuilder query1= rangeQuery("@timestamp")
-                .from("1488286689614")  //specific numbers, to compare the results with the one in logging.picsart.tools
+                .from("1488286689614")
                 .to("1488287589614")
                 .includeLower(true)
                 .includeUpper(true)
                 .format("epoch_millis");
 
         SearchResponse response3 = client.prepareSearch("crashlytics-2017.02")
-                .setQuery(qb)
+                .setQuery(query1)
                 .addAggregation(
                         AggregationBuilders.terms("by_os_version").field("os_version").size(5)
                 )
                 .execute().actionGet();
 
         System.out.print(response3.toString());
+
+
+        //by manufacturer-model
+        QueryBuilder query2 = rangeQuery("@timestamp")
+                .from("1488375445536")
+                .to("1488376345536")
+                .includeLower(true)
+                .includeUpper(true)
+                .format("epoch_millis");
+
+        SearchResponse response4 = client.prepareSearch("crashlytics-2017.03")
+                .setQuery(query2)
+                .addAggregation(
+                        AggregationBuilders.terms("by_manufacturer").field("phone_manufacturer").size(5)
+                                .subAggregation(
+                                        AggregationBuilders.terms("models_of_manufacturer").field("phone_model").size(50)
+                                )
+                )
+
+                .execute().actionGet();
+        System.out.print(response4.toString());
 
 //
 
