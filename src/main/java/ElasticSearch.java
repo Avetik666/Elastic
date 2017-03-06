@@ -1,255 +1,95 @@
-
-
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
-import org.elasticsearch.search.aggregations.metrics.cardinality.CardinalityAggregationBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
-
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
 
 /**
- * Created by armanmac on 2/16/17.
+ *@author arman.piloyan@picsart.com
+ *@author avetik.sarikyan@picsart.com
+ *@author hrachya.yeghishyan@picsart.com
  */
 public class ElasticSearch {
-    public static long[] time(String from, String to) {
-        long date[] = new long[2];
-        SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy HH:mm:ss.SSS ");
-        df.setTimeZone(TimeZone.getTimeZone("GMT+4"));
-        Date dateto = null;
-        Date fromtime = null;
-        try {
-            fromtime = df.parse(from);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
 
-        Calendar calobj = Calendar.getInstance();
-
-        if (to == null) {
-            try {
-                String current = df.format(calobj.getTime());
-                dateto = df.parse(current);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
-                dateto = df.parse(to);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        long epochto = dateto.getTime();
-        long epochfrom = fromtime.getTime();
-        date[0] = epochto;
-        date[1] = epochfrom;
-        return date;
-    }
 
     public static void main(String[] args) throws IOException {
-        long[] time = time("Mar 03 2017 15:14:00.000 ", null);
 
-        Settings settings = Settings.builder()
-                .put("cluster.name", "PicsArtCluster")
-                .put("node.name", "ny-log1").build();
-        TransportAddress address = new InetSocketTransportAddress(InetAddress.getByName("173.244.201.88"), 9300);
-        Client client = new PreBuiltTransportClient(settings).
-                addTransportAddress(address);
-        QueryBuilder qb = matchAllQuery();
+        //getting from and to values in epoch_millis
+        long[] time = new SetTime("Mar 06 2017 14:15:00.000 ", null).time();
 
 
-       /* Hrach's methods */
+        //initializing client
+        Client client = new ClientBuilder("PicsArtCluster", "ny-log1", "173.244.201.88", 9300).getClient();
 
+        //Basic range query
+        QueryBuilder query = new RangeQueryMaker(Long.toString(time[1]), Long.toString(time[0]), "epoch_millis").getQuery("@timestamp");
 
         //by os version
-        QueryBuilder query1 = rangeQuery("@timestamp")
-                .from("1488286689614")
-                .to("1488287589614")
-                .includeLower(true)
-                .includeUpper(true)
-                .format("epoch_millis");
+        SearchResponse response = new ResponseMaker(query, "crashlytics-2017.03", "by_os_version", "os_version", 5)
+                .getResponseWithAggregation(client);
 
-        SearchResponse response3 = client.prepareSearch("crashlytics-2017.02")
-                .setQuery(query1)
-                .addAggregation(
-                        AggregationBuilders.terms("by_os_version").field("os_version").size(5)
-                )
-                .execute().actionGet();
-
-        System.out.print("\n" + response3.toString());
+        System.out.println("By os version" + "\n" + response);
 
 
         //by language
-        QueryBuilder qry1 = rangeQuery("@timestamp")
-                .gte("1488544479895")
-                .lte("1488545379895")
-                .format("epoch_millis");
+        SearchResponse response1 = new ResponseMaker(query, "crashlytics-2017.03", "by_language", "language_code", 50)
+                .getResponseWithAggregation(client);
 
-        SearchResponse resp1 = client.prepareSearch("crashlytics-2017.03")
-                .setQuery(qry1)
-                .addAggregation(
-                        AggregationBuilders.terms("by_language").field("language_code").size(50)
-                )
-                .execute().actionGet();
-
-        System.out.print("\n" + resp1.toString());
-
+        System.out.println("By language" + "\n" + response1);
 
         //by app_version
-        QueryBuilder qry2 = rangeQuery("@timestamp")
-                .gte("1488545817638")
-                .lte("1488546717638")
-                .format("epoch_millis");
+        SearchResponse response2 = new ResponseMaker(query, "crashlytics-2017.03", "by_app_version", "app_version", 20)
+                .getResponseWithAggregation(client);
 
-        SearchResponse resp2 = client.prepareSearch("crashlytics-2017.03")
-                .setQuery(qry2)
-                .addAggregation(
-                        AggregationBuilders.terms("by_app_version").field("app_version").size(20)
-                )
-                .execute().actionGet();
-
-        System.out.print("\n" + resp2.toString());
+        System.out.println("By app_version" + "\n" + response2);
 
 
         //by manufacturer-model
-        QueryBuilder query2 = rangeQuery("@timestamp")
-                .from("1488375445536")
-                .to("1488376345536")
-                .includeLower(true)
-                .includeUpper(true)
-                .format("epoch_millis");
+        SearchResponse response3 = new ResponseMaker(query, "crashlytics-2017.03", "by_manufacturer", "phone_manufacturer", 5, "models_of_manufacturer", "phone_model", 50)
+                .getResponseWithAggregationAndSub(client);
 
-        SearchResponse response4 = client.prepareSearch("crashlytics-2017.03")
-                .setQuery(query2)
-                .addAggregation(
-                        AggregationBuilders.terms("by_manufacturer").field("phone_manufacturer").size(5)
-                                .subAggregation(
-                                        AggregationBuilders.terms("models_of_manufacturer").field("phone_model").size(50)
-                                )
-                )
-
-                .execute().actionGet();
-        System.out.print("\n" + response4.toString());
+        System.out.println("By manufacturer-model" + "\n" + response3);
 
 
         //Crash Trend
-        QueryBuilder queryBuilder = rangeQuery("@timestamp")
-                .gte("1488450868673")
-                .lte("1488451768673")
-                .format("epoch_millis");
+        SearchResponse response4 = new ResponseMaker(query, "crashlytics-2017.03", "date_hist", "@timestamp", 0, "crash", "crash_case", 15)
+                .getResponseWithAggregationAndSubInterval(client, 30, "Europe/Moscow", 1);
 
-        SearchResponse searchResponse = client.prepareSearch("crashlytics-2017.03")
-                .setQuery(queryBuilder)
-                .addAggregation(
-                        AggregationBuilders.dateHistogram("date_hist").field("@timestamp").dateHistogramInterval(DateHistogramInterval.seconds(30)).timeZone(DateTimeZone.forID("Europe/Moscow")).minDocCount(1)
-                                .subAggregation(
-                                        AggregationBuilders.terms("crash").field("crash_case").size(15)
-                                )
-                )
-                .execute().actionGet();
+        System.out.println("Crash trend count" + "\n" + response4);
 
 
-        System.out.print("\n" + searchResponse.toString());
+        //Basic boolean query
+        QueryBuilder query1 = new BoolQueryMaker("*", 0).getBoolQuery(query);
+
+        //Crash count
+        SearchResponse response5 = new ResponseMaker(query1, "crashlytics-2017.03").getResponse(client);
+
+        System.out.println("Crash count" + "\n" + response5.getHits().getTotalHits());
 
 
-        //end of Hrach's queries
+        //Crash count by device ID
+        SearchResponse response6 = new ResponseMaker(query1, "crashlytics-2017.03", "agg", "device_id", 0)
+                .getResponseWithCardAggregation(client);
+
+        Cardinality agg = response6.getAggregations().get("agg");
+        System.out.println("Devices affected, Unique count of device_id " + "\n" + agg.getValue());
 
 
+        //unique count by phone model
+        SearchResponse response7 = new ResponseMaker(query1, "crashlytics-2017.03", "agg", "phone_model", 0)
+                .getResponseWithCardAggregation(client);
 
-        //Arman's queries
-
-        //query: Crash count
-        QueryBuilder test_query = QueryBuilders
-                .boolQuery()
-                .must(QueryBuilders.queryStringQuery("*").analyzeWildcard(true))
-                .must(rangeQuery("@timestamp").gte(Long.toString(time[1])).lte(Long.toString(time[0])).format("epoch_millis"));
-
-        SearchSourceBuilder searchSourceBuilder1 = new SearchSourceBuilder();
-        searchSourceBuilder1.query(test_query);
-        searchSourceBuilder1.size(0);
+        Cardinality agg1 = response7.getAggregations().get("agg");
+        System.out.println("Phone models affected, Unique count of phone_model" + "\n" + agg1.getValue());
 
 
-        //sending search query for Crash count
-        SearchResponse response1 = client.prepareSearch("crashlytics-2017.03")
-                .setFetchSource(true)
-                .setQuery(searchSourceBuilder1.query())
-                .get();
+        //unique count by user id
+        SearchResponse response8 = new ResponseMaker(query1, "crashlytics-2017.03", "agg", "user_id", 0)
+                .getResponseWithCardAggregation(client);
 
-        System.out.println("\n"+"Crash Count" + ":" + " " + response1.getHits().totalHits());
-
-
-        //sending search query for unique device ID Crash count
-        CardinalityAggregationBuilder aggregation = AggregationBuilders
-                .cardinality("agg")
-                .field("device_id");
-
-
-        SearchResponse response_2 = client.prepareSearch("crashlytics-2017.03")
-                .setFetchSource(true)
-                .setQuery(searchSourceBuilder1.query())
-                .addAggregation(aggregation)
-                .get();
-
-        Cardinality agg = response_2.getAggregations().get("agg");
-        System.out.println("Devices affected, Unique count of device_id " + ":" + " " + agg.getValue());
-
-        //sending search query for unique count for phone model
-
-        CardinalityAggregationBuilder aggregation_1 = AggregationBuilders
-                .cardinality("agg")
-                .field("phone_model");
-
-        SearchResponse response_3 = client.prepareSearch("crashlytics-2017.03")
-                .setFetchSource(true)
-                .setQuery(searchSourceBuilder1.query())
-                .addAggregation(aggregation_1)
-                .get();
-
-        Cardinality agg1 = response_3.getAggregations().get("agg");
-        System.out.println("Phone models affected, Unique count of phone_model" + ":" + " " + agg1.getValue());
-
-
-        //sending search query for unique count for user id
-
-        CardinalityAggregationBuilder aggregation_2 = AggregationBuilders
-                .cardinality("agg")
-                .field("user_id");
-
-        SearchResponse response_4 = client.prepareSearch("crashlytics-2017.03")
-                .setFetchSource(true)
-                .setQuery(searchSourceBuilder1.query())
-                .addAggregation(aggregation_2)
-                .get();
-
-        Cardinality agg2 = response_4.getAggregations().get("agg");
-        System.out.println("Logged in users affected, Unique count of user_id" + ":" + " " + agg2.getValue());
-
-
-        //end of Arman's methods
-
-
-
+        Cardinality agg2 = response8.getAggregations().get("agg");
+        System.out.println("Logged in users affected, Unique count of user_id" + "\n" + agg2.getValue());
 
 
         client.close();
