@@ -16,7 +16,7 @@ public class ElasticSearch {
     public static void main(String[] args) throws IOException {
 
         //getting from and to values in epoch_millis
-        long[] time = new SetTime("Mar 06 2017 14:15:00.000 ", null).time();
+        long[] time = new SetTime("Mar 06 2017 15:57:00.000 ", null).time();
 
 
         //initializing client
@@ -90,6 +90,13 @@ public class ElasticSearch {
 
         Cardinality agg2 = response8.getAggregations().get("agg");
         System.out.println("Logged in users affected, Unique count of user_id" + "\n" + agg2.getValue());
+
+
+       //by app version with filter
+        SearchResponse response9 = new ResponseMaker(query, "crashlytics-2017.03", "by_app_version", "app_version", 20)
+                .getResponseWithAggregationFilter(client, "crash_case", "com.picsart.analytics.services.PAanalyticsService$3.onReceive(ProGuard:152)");
+
+        System.out.println("By app_version with filter" + "\n" + response9);
 
 
         client.close();

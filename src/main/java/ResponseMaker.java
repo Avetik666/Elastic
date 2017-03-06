@@ -18,6 +18,7 @@ public class ResponseMaker {
     private String subaggName;
     private String subaggField;
     private int subsize;
+    private MatchPhraseQueryMaker matchPhraseQueryBuilder;
 
     public ResponseMaker(QueryBuilder query, String index){
         this.query = query;
@@ -163,6 +164,73 @@ public class ResponseMaker {
                 .execute().actionGet();
         return response;
     }
+
+    public SearchResponse getResponseFilter(Client client, String filterName, String filterValue){
+        this.matchPhraseQueryBuilder = new MatchPhraseQueryMaker(filterName, filterValue);
+        SearchResponse response = client.prepareSearch(index)
+                .setFetchSource(true)
+                .setQuery(query)
+                .setQuery(matchPhraseQueryBuilder.getMatchQuery())
+                .get();
+        return response;
+    }
+
+    public SearchResponse getResponseWithAggregationFilter(Client client,String filterName, String filterValue){
+        this.matchPhraseQueryBuilder = new MatchPhraseQueryMaker(filterName, filterValue);
+        SearchResponse response = client.prepareSearch(index)
+                .setQuery(matchPhraseQueryBuilder.getMatchQuery())
+                .setQuery(query)
+                .addAggregation(
+                        AggregationBuilders.terms(aggName).field(aggField).size(size)
+                )
+                .execute().actionGet();
+        return response;
+    }
+
+    public SearchResponse getResponseWithCardAggregationFilter(Client client,String filterName, String filterValue){
+        this.matchPhraseQueryBuilder = new MatchPhraseQueryMaker(filterName, filterValue);
+        SearchResponse response = client.prepareSearch(index)
+                .setQuery(query)
+                .setQuery(matchPhraseQueryBuilder.getMatchQuery())
+                .addAggregation(
+                        AggregationBuilders.cardinality(aggName).field(aggField)
+                )
+                .execute().actionGet();
+        return response;
+    }
+
+    public SearchResponse getResponseWithAggregationAndSubFilter(Client client,String filterName, String filterValue){
+        this.matchPhraseQueryBuilder = new MatchPhraseQueryMaker(filterName, filterValue);
+        SearchResponse response = client.prepareSearch(index)
+                .setQuery(query)
+                .setQuery(matchPhraseQueryBuilder.getMatchQuery())
+                .addAggregation(
+                        AggregationBuilders.terms(aggName).field(aggField).size(size)
+                                .subAggregation(
+                                        AggregationBuilders.terms(subaggName).field(subaggField).size(subsize)
+                                )
+                )
+
+                .execute().actionGet();
+        return response;
+    }
+
+    public SearchResponse getResponseWithAggregationAndSubIntervalFilter(Client client, int intervals, String timezone, int minCount,String filterName, String filterValue){
+        this.matchPhraseQueryBuilder = new MatchPhraseQueryMaker(filterName, filterValue);
+        SearchResponse response = client.prepareSearch(index)
+                .setQuery(query)
+                .setQuery(matchPhraseQueryBuilder.getMatchQuery())
+                .addAggregation(
+                        AggregationBuilders.dateHistogram(aggName).field(aggField).dateHistogramInterval(DateHistogramInterval.seconds(intervals)).timeZone(DateTimeZone.forID(timezone)).minDocCount(minCount)
+                                .subAggregation(
+                                        AggregationBuilders.terms(subaggName).field(subaggField).size(15)
+                                )
+                )
+                .execute().actionGet();
+        return response;
+    }
+
+
 
 
 
