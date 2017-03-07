@@ -1,6 +1,8 @@
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 
 import java.io.IOException;
@@ -49,14 +51,42 @@ public class ElasticSearch {
         SearchResponse response3 = new ResponseMaker(query, "crashlytics-2017.03", "by_manufacturer", "phone_manufacturer", 5, "models_of_manufacturer", "phone_model", 50)
                 .getResponseWithAggregationAndSub(client);
 
-        System.out.println("By manufacturer-model" + "\n" + response3);
+        Terms byManufacturer = response3.getAggregations().get("by_manufacturer");
+
+
+        for(Terms.Bucket entry1 : byManufacturer.getBuckets()){
+            System.out.println(entry1.getKey());
+            System.out.println(entry1.getDocCount());
+            System.out.println();
+            Terms models = entry1.getAggregations().get("models_of_manufacturer");
+            for(Terms.Bucket entry2 : models.getBuckets()){
+                System.out.println(entry2.getKey());
+                System.out.println(entry2.getDocCount());
+            }
+            System.out.println();
+        }
+        //System.out.println("By manufacturer-model" + "\n" + response3);
 
 
         //Crash Trend
         SearchResponse response4 = new ResponseMaker(query, "crashlytics-2017.03", "date_hist", "@timestamp", 0, "crash", "crash_case", 15)
                 .getResponseWithAggregationAndSubInterval(client, 30, "Europe/Moscow", 1);
 
-        System.out.println("Crash trend count" + "\n" + response4);
+
+        Histogram dateHist = response4.getAggregations().get("date_hist");
+
+        for(Histogram.Bucket entry1 : dateHist.getBuckets()){
+            System.out.println(entry1.getKey());
+            System.out.println(entry1.getDocCount());
+            System.out.println();
+            Terms crashCase = entry1.getAggregations().get("crash");
+            for(Terms.Bucket entry2 : crashCase.getBuckets()){
+                System.out.println(entry2.getKey());
+                System.out.println(entry2.getDocCount());
+            }
+            System.out.println();
+        }
+        //System.out.println("Crash trend count" + "\n" + response4);
 
 
         //Basic boolean query
