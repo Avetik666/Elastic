@@ -122,6 +122,7 @@ public class ResponseMaker {
                 .addAggregation(
                         AggregationBuilders.terms(aggName).field(aggField).size(size)
                 )
+
                 .execute().actionGet();
         return response;
     }
@@ -183,6 +184,7 @@ public class ResponseMaker {
                 .addAggregation(
                         AggregationBuilders.terms(aggName).field(aggField).size(size)
                 )
+
                 .execute().actionGet();
         return response;
     }

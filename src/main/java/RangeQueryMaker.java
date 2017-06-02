@@ -54,6 +54,8 @@ public class RangeQueryMaker {
     public QueryBuilder getQuery(String name){
         this.name = name;
 
+
+
         QueryBuilder query = rangeQuery(name)
                 .gte(from)
                 .lte(to)
